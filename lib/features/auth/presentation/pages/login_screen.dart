@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../marketplace/presentation/pages/home_screen.dart';
+import '../../../marketplace/presentation/pages/button_navigation.dart';
 import '../state/auth_state.dart';
 import '../view_model/auth_view_model.dart';
 import 'forgot_password_screen.dart';
@@ -44,7 +44,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const ButtonNavigation()),
           (route) => false,
         );
       } else if (next.status == AuthStatus.error) {

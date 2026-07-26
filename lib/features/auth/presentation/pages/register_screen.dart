@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../marketplace/presentation/pages/home_screen.dart';
+import '../../../marketplace/presentation/pages/button_navigation.dart';
 import '../../domain/entities/auth_entity.dart';
 import '../state/auth_state.dart';
 import '../view_model/auth_view_model.dart';
@@ -21,9 +21,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _bakeryNameController = TextEditingController();
 
-  UserRole _role = UserRole.buyer;
   bool _obscurePassword = true;
 
   @override
@@ -32,7 +30,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
-    _bakeryNameController.dispose();
     super.dispose();
   }
 
@@ -44,8 +41,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
           password: _passwordController.text,
-          role: _role,
-          bakeryName: _role == UserRole.baker ? _bakeryNameController.text.trim() : null,
+          role: UserRole.buyer,
         );
   }
 
@@ -56,7 +52,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const ButtonNavigation()),
           (route) => false,
         );
       } else if (next.status == AuthStatus.error) {
@@ -79,24 +75,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SegmentedButton<UserRole>(
-                  segments: const [
-                    ButtonSegment(
-                      value: UserRole.buyer,
-                      label: Text('Buyer'),
-                      icon: Icon(Icons.shopping_bag_outlined),
-                    ),
-                    ButtonSegment(
-                      value: UserRole.baker,
-                      label: Text('Baker'),
-                      icon: Icon(Icons.cake_outlined),
-                    ),
-                  ],
-                  selected: {_role},
-                  onSelectionChanged: (selection) => setState(() => _role = selection.first),
-                  style: SegmentedButton.styleFrom(selectedBackgroundColor: bakeryColor),
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _fullNameController,
                   decoration: const InputDecoration(
@@ -147,22 +125,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     return null;
                   },
                 ),
-                if (_role == UserRole.baker) ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _bakeryNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Bakery name',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (_role == UserRole.baker && (value == null || value.trim().isEmpty)) {
-                        return 'Bakery name is required for bakers';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: authState.isLoading ? null : _handleRegister,
