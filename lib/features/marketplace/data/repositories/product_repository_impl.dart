@@ -38,6 +38,7 @@ class ProductRepositoryImpl implements ProductRepository {
 					  description: e.description,
 					  bakerName: e.bakerName,
 					  availability: e.availability,
+					  variants: e.variants,
 					))
 				.toList();
 		} catch (e) {
