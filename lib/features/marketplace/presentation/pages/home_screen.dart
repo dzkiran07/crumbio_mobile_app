@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_endpoint.dart';
-import '../../../auth/presentation/pages/login_screen.dart';
-import '../../../auth/presentation/state/auth_state.dart';
-import '../../../auth/presentation/view_model/auth_view_model.dart';
-import '../state/cart_provider.dart';
 import '../state/product_provider.dart';
-import 'cart_screen.dart';
-import 'my_listings_screen.dart';
 import 'product_detail_screen.dart';
 
 final selectedCategoryProvider = StateProvider<int>((ref) => 0);
@@ -321,194 +315,43 @@ class HomeScreen extends ConsumerWidget {
             top: 0,
             left: 16,
             right: 16,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? colorScheme.surface : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDarkMode ? Colors.white12 : Colors.transparent,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      style: TextStyle(color: colorScheme.onSurface),
-                      onChanged: (value) {
-                        ref.read(searchQueryProvider.notifier).state = value;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search products...',
-                        hintStyle: TextStyle(
-                          color: isDarkMode ? Colors.white60 : Colors.black54,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: isDarkMode ? Colors.white70 : bakeryColor,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: isDarkMode ? colorScheme.surface : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDarkMode ? Colors.white12 : Colors.transparent,
                 ),
-                const SizedBox(width: 10),
-                _ProfileIconButton(cardBackground: cardBackground, isDarkMode: isDarkMode),
-                const SizedBox(width: 10),
-                _CartIconButton(cardBackground: cardBackground, isDarkMode: isDarkMode),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CartIconButton extends ConsumerWidget {
-  final Color cardBackground;
-  final bool isDarkMode;
-
-  const _CartIconButton({required this.cardBackground, required this.isDarkMode});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final itemCount = ref.watch(cartProvider).length;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CartScreen()),
-        );
-      },
-      child: Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Center(
-            child: Icon(
-              Icons.shopping_bag_outlined,
-              color: isDarkMode ? Colors.white70 : HomeScreen.bakeryColor,
-            ),
-          ),
-          if (itemCount > 0)
-            Positioned(
-              top: -4,
-              right: -4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: HomeScreen.bakeryColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$itemCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
+                ],
+              ),
+              child: TextField(
+                style: TextStyle(color: colorScheme.onSurface),
+                onChanged: (value) {
+                  ref.read(searchQueryProvider.notifier).state = value;
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search products...',
+                  hintStyle: TextStyle(
+                    color: isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: isDarkMode ? Colors.white70 : bakeryColor,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
+          ),
         ],
-      ),
-      ),
-    );
-  }
-}
-
-class _ProfileIconButton extends ConsumerWidget {
-  final Color cardBackground;
-  final bool isDarkMode;
-
-  const _ProfileIconButton({required this.cardBackground, required this.isDarkMode});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authViewModelProvider);
-    final isAuthenticated = authState.status == AuthStatus.authenticated;
-
-    return GestureDetector(
-      onTap: () {
-        if (isAuthenticated) {
-          showDialog<void>(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: Text(authState.authEntity?.fullName ?? 'Account'),
-              content: Text(
-                '${authState.authEntity?.email ?? ''}\nRole: ${authState.authEntity?.role.name ?? ''}',
-              ),
-              actions: [
-                if (authState.authEntity?.isBaker == true)
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const MyListingsScreen()),
-                      );
-                    },
-                    child: const Text('My Listings'),
-                  ),
-                TextButton(
-                  onPressed: () {
-                    ref.read(authViewModelProvider.notifier).logout();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Logout'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        }
-      },
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: cardBackground,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(
-          isAuthenticated ? Icons.person : Icons.person_outline,
-          color: isDarkMode ? Colors.white70 : HomeScreen.bakeryColor,
-        ),
       ),
     );
   }
