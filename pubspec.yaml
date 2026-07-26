@@ -39,6 +39,14 @@ dependencies:
   hive: ^2.2.3
   path_provider: ^2.1.0
 
+  # Networking
+  dio: ^5.9.0
+  dio_smart_retry: ^7.0.1
+  pretty_dio_logger: ^1.4.0
+  http: ^1.2.1
+  device_info_plus: ^10.1.2
+  flutter_secure_storage: ^10.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
