@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/cart_provider.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   final VoidCallback? onStartShopping;
@@ -40,13 +41,9 @@ class _CartScreenBodyState extends ConsumerState<CartScreenBody> {
   }
 
   void _onProceedToCheckout() {
-    // TODO: wire to the real checkout flow (pickup/delivery, payment method)
-    // once that step is built.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Checkout coming next.')),
-      );
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+    );
   }
 
   @override
