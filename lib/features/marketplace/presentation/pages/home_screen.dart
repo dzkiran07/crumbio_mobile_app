@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/api/api_endpoint.dart';
 import '../state/cart_provider.dart';
 import '../state/product_provider.dart';
+import 'cart_screen.dart';
 import 'product_detail_screen.dart';
 
 final selectedCategoryProvider = StateProvider<int>((ref) => 0);
@@ -376,7 +377,13 @@ class _CartIconButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemCount = ref.watch(cartProvider).length;
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CartScreen()),
+        );
+      },
+      child: Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
@@ -420,6 +427,7 @@ class _CartIconButton extends ConsumerWidget {
               ),
             ),
         ],
+      ),
       ),
     );
   }

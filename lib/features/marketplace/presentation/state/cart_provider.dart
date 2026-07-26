@@ -15,14 +15,10 @@ class CartNotifier extends StateNotifier<List<CartProduct>> {
     state = const [];
   }
 
-  String _itemKey(CartProduct item) {
-    return '${item.id}_${item.size}_${item.flavor ?? ''}';
-  }
-
   void addItem(CartProduct newItem) {
-    final newItemKey = _itemKey(newItem);
+    final newItemKey = newItem.cartKey;
     final existingIndex = state.indexWhere(
-      (item) => _itemKey(item) == newItemKey,
+      (item) => item.cartKey == newItemKey,
     );
     if (existingIndex == -1) {
       state = [...state, newItem];
@@ -39,7 +35,7 @@ class CartNotifier extends StateNotifier<List<CartProduct>> {
   }
 
   void incrementQuantity(String itemKey) {
-    final index = state.indexWhere((item) => _itemKey(item) == itemKey);
+    final index = state.indexWhere((item) => item.cartKey == itemKey);
     if (index == -1) return;
 
     final updatedState = [...state];
@@ -49,7 +45,7 @@ class CartNotifier extends StateNotifier<List<CartProduct>> {
   }
 
   void decrementQuantity(String itemKey) {
-    final index = state.indexWhere((item) => _itemKey(item) == itemKey);
+    final index = state.indexWhere((item) => item.cartKey == itemKey);
     if (index == -1) return;
 
     final updatedState = [...state];
@@ -61,7 +57,16 @@ class CartNotifier extends StateNotifier<List<CartProduct>> {
   }
 
   void removeItem(String itemKey) {
-    state = state.where((item) => _itemKey(item) != itemKey).toList();
+    state = state.where((item) => item.cartKey != itemKey).toList();
+  }
+
+  void insertItem(int index, CartProduct item) {
+    final updatedState = [...state];
+    final insertIndex = index < 0
+        ? 0
+        : (index > updatedState.length ? updatedState.length : index);
+    updatedState.insert(insertIndex, item);
+    state = updatedState;
   }
 }
 
@@ -83,6 +88,8 @@ class CartProduct {
     this.flavor,
     required this.quantity,
   });
+
+  String get cartKey => '${id}_${size}_${flavor ?? ''}';
 
   CartProduct copyWith({
     String? id,
