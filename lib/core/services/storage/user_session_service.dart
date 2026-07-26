@@ -1,9 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // NOTE: only the token slice of AgriBridge's UserSessionService is adapted
-// here — the auth-session fields, cart caching, and biometric login logic
-// belong to features we haven't built yet and will be added when those
-// steps come up.
+// here — the cart caching and biometric login logic belong to features we
+// haven't built (or don't need) and are left out.
+final userSessionServiceProvider = Provider<UserSessionService>((ref) {
+  return UserSessionService();
+});
+
 class UserSessionService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
