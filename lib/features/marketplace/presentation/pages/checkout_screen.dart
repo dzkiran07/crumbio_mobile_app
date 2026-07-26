@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../orders/domain/repositories/order_repository.dart';
+import '../../../orders/presentation/state/order_provider.dart';
 import '../state/cart_provider.dart';
+import 'button_navigation.dart';
 import 'cart_screen.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -79,21 +82,60 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
+    final cartItems = ref.read(cartProvider);
+    if (cartItems.isEmpty) return;
+
     FocusScope.of(context).unfocus();
     setState(() => _isSubmitting = true);
 
-    // TODO: wire to POST /orders once the auth feature exists — placing a
-    // real order needs a logged-in buyer's JWT, which we don't have yet.
-    await Future.delayed(const Duration(milliseconds: 400));
-
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Placing orders coming next — needs login.')),
+    try {
+      final createOrder = ref.read(createOrderUsecaseProvider);
+      await createOrder(
+        CreateOrderParams(
+          items: cartItems
+              .map((item) => CreateOrderItemParams(
+                    productId: item.id,
+                    size: item.size,
+                    flavor: item.flavor,
+                    quantity: item.quantity,
+                  ))
+              .toList(),
+          fulfillmentType: _fulfillmentType,
+          deliveryAddress:
+              _fulfillmentType == 'delivery' ? _addressController.text.trim() : null,
+          pickupNote:
+              _fulfillmentType == 'pickup' && _pickupNoteController.text.trim().isNotEmpty
+                  ? _pickupNoteController.text.trim()
+                  : null,
+          paymentMethod: _paymentMethod,
+        ),
       );
+
+      if (!mounted) return;
+      ref.read(cartProvider.notifier).clear();
+      ref.read(myOrdersProvider.notifier).fetchOrders();
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const ButtonNavigation(initialIndex: 2),
+        ),
+        (route) => false,
+      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Order placed successfully!')),
+        );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Could not place order: $e')),
+        );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
