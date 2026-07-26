@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/api/api_endpoint.dart';
 import 'core/services/hive/hive_service.dart';
+import 'features/auth/presentation/view_model/auth_view_model.dart';
 import 'features/marketplace/presentation/pages/home_screen.dart';
 
 void main() async {
@@ -24,7 +25,32 @@ class CrumbioApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD9782D)),
       ),
-      home: const HomeScreen(),
+      home: const _AppRoot(),
     );
+  }
+}
+
+/// Restores any cached login session before showing the home screen — Home
+/// itself is guest-accessible (browsing doesn't require login), so this just
+/// makes sure a previously logged-in user's profile icon reflects that.
+class _AppRoot extends ConsumerStatefulWidget {
+  const _AppRoot();
+
+  @override
+  ConsumerState<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends ConsumerState<_AppRoot> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authViewModelProvider.notifier).loadCurrentUser();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const HomeScreen();
   }
 }

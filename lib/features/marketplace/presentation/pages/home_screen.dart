@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_endpoint.dart';
+import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../auth/presentation/state/auth_state.dart';
+import '../../../auth/presentation/view_model/auth_view_model.dart';
 import '../state/cart_provider.dart';
 import '../state/product_provider.dart';
 import 'cart_screen.dart';
@@ -357,6 +360,8 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
+                _ProfileIconButton(cardBackground: cardBackground, isDarkMode: isDarkMode),
+                const SizedBox(width: 10),
                 _CartIconButton(cardBackground: cardBackground, isDarkMode: isDarkMode),
               ],
             ),
@@ -428,6 +433,71 @@ class _CartIconButton extends ConsumerWidget {
             ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _ProfileIconButton extends ConsumerWidget {
+  final Color cardBackground;
+  final bool isDarkMode;
+
+  const _ProfileIconButton({required this.cardBackground, required this.isDarkMode});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authViewModelProvider);
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+
+    return GestureDetector(
+      onTap: () {
+        if (isAuthenticated) {
+          showDialog<void>(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text(authState.authEntity?.fullName ?? 'Account'),
+              content: Text(
+                '${authState.authEntity?.email ?? ''}\nRole: ${authState.authEntity?.role.name ?? ''}',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    ref.read(authViewModelProvider.notifier).logout();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Logout'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
+      },
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(
+          isAuthenticated ? Icons.person : Icons.person_outline,
+          color: isDarkMode ? Colors.white70 : HomeScreen.bakeryColor,
+        ),
       ),
     );
   }

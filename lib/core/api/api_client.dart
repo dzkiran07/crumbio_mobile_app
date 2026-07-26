@@ -1,10 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../services/storage/user_session_service.dart';
 import 'api_endpoint.dart';
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient(userSessionService: ref.read(userSessionServiceProvider));
+});
 
 class ApiClient {
   final Dio _dio;
