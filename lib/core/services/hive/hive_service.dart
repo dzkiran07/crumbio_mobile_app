@@ -1,8 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../constants/hive_table_constants.dart';
 import '../../../features/marketplace/data/models/product/product_hive_model.dart';
+
+final hiveServiceProvider = Provider<HiveService>((ref) {
+  return HiveService();
+});
 
 class HiveService {
   //init
@@ -24,6 +29,7 @@ class HiveService {
   //Open Boxes
   Future<void> openBoxes() async {
     await Hive.openBox<ProductHiveModel>(HiveTableConstant.productTable);
+    await Hive.openBox(HiveTableConstant.sessionTable);
   }
 
   //Close Boxes
@@ -53,5 +59,23 @@ class HiveService {
 
   Future<void> clearProducts() async {
     await _productBox.clear();
+  }
+
+  //==========Session queries==================
+
+  Box get _sessionBox => Hive.box(HiveTableConstant.sessionTable);
+
+  Future<void> saveCurrentUser(Map<String, dynamic> userJson) async {
+    await _sessionBox.put('current_user', userJson);
+  }
+
+  Map<String, dynamic>? getCurrentUser() {
+    final raw = _sessionBox.get('current_user');
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(raw as Map);
+  }
+
+  Future<void> clearCurrentUser() async {
+    await _sessionBox.delete('current_user');
   }
 }
