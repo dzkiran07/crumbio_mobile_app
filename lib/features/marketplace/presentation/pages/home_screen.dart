@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_endpoint.dart';
 import '../state/product_provider.dart';
+import 'product_detail_screen.dart';
 
 final selectedCategoryProvider = StateProvider<int>((ref) => 0);
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -278,14 +279,11 @@ class HomeScreen extends ConsumerWidget {
                                                   size: 20,
                                                 ),
                                                 onPressed: () {
-                                                  // TODO: navigate to
-                                                  // ProductDetailScreen once
-                                                  // it's built (next step).
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        '${product.name} — detail screen coming next.',
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          ProductDetailScreen(
+                                                        product: product,
                                                       ),
                                                     ),
                                                   );
