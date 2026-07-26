@@ -185,7 +185,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   children: [
                     _paymentChip('cash_on_delivery', 'Cash on delivery', Icons.payments_outlined),
                     _paymentChip('khalti', 'Khalti', Icons.account_balance_wallet_outlined),
-                    _paymentChip('esewa', 'eSewa', Icons.account_balance_wallet_outlined),
                   ],
                 ),
                 const SizedBox(height: 20),
