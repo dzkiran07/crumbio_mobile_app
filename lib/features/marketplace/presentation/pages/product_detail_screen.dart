@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_endpoint.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/entities/product_variant.dart';
+import '../state/cart_provider.dart';
 
-class ProductDetailScreen extends StatefulWidget {
+class ProductDetailScreen extends ConsumerStatefulWidget {
   final ProductEntity product;
 
   const ProductDetailScreen({super.key, required this.product});
 
   @override
-  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+  ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _quantity = 1;
   ProductVariant? _selectedVariant;
 
@@ -76,7 +78,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void _onAddToCart() {
     if (!_isAvailable) return;
 
-    // TODO: wire to the real cart provider once the cart feature is built.
+    ref.read(cartProvider.notifier).addItem(
+          CartProduct(
+            id: widget.product.id,
+            name: widget.product.name,
+            price: _unitPrice,
+            image: widget.product.image,
+            size: _selectedVariant?.size ?? '',
+            flavor: _selectedVariant?.flavor,
+            quantity: _quantity,
+          ),
+        );
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -86,7 +99,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           content: Text(
             '${widget.product.name}'
             '${_selectedVariant != null ? ' (${_variantLabel(_selectedVariant!)})' : ''}'
-            ' x$_quantity — cart coming next.',
+            ' x$_quantity added to cart',
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
