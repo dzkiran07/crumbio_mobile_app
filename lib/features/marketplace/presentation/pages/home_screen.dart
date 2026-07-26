@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_endpoint.dart';
+import '../state/cart_provider.dart';
 import '../state/product_provider.dart';
 import 'product_detail_screen.dart';
 
@@ -315,42 +316,109 @@ class HomeScreen extends ConsumerWidget {
             top: 0,
             left: 16,
             right: 16,
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: isDarkMode ? colorScheme.surface : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDarkMode ? Colors.white12 : Colors.transparent,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? colorScheme.surface : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDarkMode ? Colors.white12 : Colors.transparent,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      style: TextStyle(color: colorScheme.onSurface),
+                      onChanged: (value) {
+                        ref.read(searchQueryProvider.notifier).state = value;
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search products...',
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? Colors.white60 : Colors.black54,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: isDarkMode ? Colors.white70 : bakeryColor,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                const SizedBox(width: 10),
+                _CartIconButton(cardBackground: cardBackground, isDarkMode: isDarkMode),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartIconButton extends ConsumerWidget {
+  final Color cardBackground;
+  final bool isDarkMode;
+
+  const _CartIconButton({required this.cardBackground, required this.isDarkMode});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final itemCount = ref.watch(cartProvider).length;
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.24 : 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Center(
+            child: Icon(
+              Icons.shopping_bag_outlined,
+              color: isDarkMode ? Colors.white70 : HomeScreen.bakeryColor,
+            ),
+          ),
+          if (itemCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: HomeScreen.bakeryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$itemCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              child: TextField(
-                style: TextStyle(color: colorScheme.onSurface),
-                onChanged: (value) {
-                  ref.read(searchQueryProvider.notifier).state = value;
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search products...',
-                  hintStyle: TextStyle(
-                    color: isDarkMode ? Colors.white60 : Colors.black54,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: isDarkMode ? Colors.white70 : bakeryColor,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
