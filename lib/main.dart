@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/api/api_endpoint.dart';
 import 'core/services/hive/hive_service.dart';
 import 'features/auth/presentation/view_model/auth_view_model.dart';
-import 'features/marketplace/presentation/pages/home_screen.dart';
+import 'features/splash/presentation/pages/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +30,8 @@ class CrumbioApp extends StatelessWidget {
   }
 }
 
-/// Restores any cached login session before showing the home screen — Home
-/// itself is guest-accessible (browsing doesn't require login), so this just
-/// makes sure a previously logged-in user's profile icon reflects that.
+/// Kicks off restoring any cached login session (used by the Profile tab)
+/// in the background while SplashScreen decides where to route the user.
 class _AppRoot extends ConsumerStatefulWidget {
   const _AppRoot();
 
@@ -51,6 +50,6 @@ class _AppRootState extends ConsumerState<_AppRoot> {
 
   @override
   Widget build(BuildContext context) {
-    return const HomeScreen();
+    return const SplashScreen();
   }
 }
