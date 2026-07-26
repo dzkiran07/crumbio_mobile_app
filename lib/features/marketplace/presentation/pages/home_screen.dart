@@ -8,6 +8,7 @@ import '../../../auth/presentation/view_model/auth_view_model.dart';
 import '../state/cart_provider.dart';
 import '../state/product_provider.dart';
 import 'cart_screen.dart';
+import 'my_listings_screen.dart';
 import 'product_detail_screen.dart';
 
 final selectedCategoryProvider = StateProvider<int>((ref) => 0);
@@ -460,6 +461,16 @@ class _ProfileIconButton extends ConsumerWidget {
                 '${authState.authEntity?.email ?? ''}\nRole: ${authState.authEntity?.role.name ?? ''}',
               ),
               actions: [
+                if (authState.authEntity?.isBaker == true)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const MyListingsScreen()),
+                      );
+                    },
+                    child: const Text('My Listings'),
+                  ),
                 TextButton(
                   onPressed: () {
                     ref.read(authViewModelProvider.notifier).logout();
