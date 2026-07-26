@@ -1,13 +1,57 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../constants/hive_table_constants.dart';
+import '../../../features/marketplace/data/models/product/product_hive_model.dart';
 
 class HiveService {
-  HiveService._();
+  //init
+  Future<void> init() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/${HiveTableConstant.dbName}';
+    Hive.init(path);
+    _registerAdapter();
+    await openBoxes();
+  }
 
-  static Future<void> init() async {
-    await Hive.initFlutter();
+  //Register Adapters
+  void _registerAdapter() {
+    if (!Hive.isAdapterRegistered(HiveTableConstant.productTypeId)) {
+      Hive.registerAdapter(ProductHiveModelAdapter());
+    }
+  }
 
-    await Hive.openBox(HiveTableConstants.productCacheBox);
+  //Open Boxes
+  Future<void> openBoxes() async {
+    await Hive.openBox<ProductHiveModel>(HiveTableConstant.productTable);
+  }
+
+  //Close Boxes
+  Future<void> close() async {
+    await Hive.close();
+  }
+
+  //==========Product queries==================
+
+  Box<ProductHiveModel> get _productBox =>
+      Hive.box<ProductHiveModel>(HiveTableConstant.productTable);
+
+  Future<void> cacheProducts(List<ProductHiveModel> products) async {
+    await _productBox.clear();
+    for (final product in products) {
+      await _productBox.put(product.id, product);
+    }
+  }
+
+  List<ProductHiveModel> getCachedProducts() {
+    return _productBox.values.toList();
+  }
+
+  ProductHiveModel? getCachedProduct(String id) {
+    return _productBox.get(id);
+  }
+
+  Future<void> clearProducts() async {
+    await _productBox.clear();
   }
 }
