@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'core/api/api_endpoint.dart';
 import 'core/services/hive/hive_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService().init();
+  await ApiEndpoints.initialize();
   runApp(const MyApp());
 }
 
