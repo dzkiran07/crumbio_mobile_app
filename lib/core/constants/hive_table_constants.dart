@@ -1,9 +1,9 @@
-class HiveTableConstants {
-  HiveTableConstants._();
+class HiveTableConstant {
+  HiveTableConstant._();
 
-  // Box names
-  static const String productCacheBox = 'product_cache_box';
+  // Database name
+  static const String dbName = 'crumbio_db';
 
-  // Type ids for @HiveType(typeId: ...) — keep unique across the app
-  static const int productHiveModelTypeId = 0;
+  static const int productTypeId = 0;
+  static const String productTable = 'product_table';
 }
