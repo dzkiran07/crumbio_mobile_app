@@ -1,3 +1,5 @@
+import 'product_variant.dart';
+
 class ProductEntity {
 	final String id;
 	final String name;
@@ -7,6 +9,7 @@ class ProductEntity {
 	final String description;
 	final String bakerName;
 	final String availability;
+	final List<ProductVariant> variants;
 
 	ProductEntity({
 		required this.id,
@@ -17,5 +20,6 @@ class ProductEntity {
 		required this.description,
 		required this.bakerName,
 		required this.availability,
+		this.variants = const [],
 	});
 }
