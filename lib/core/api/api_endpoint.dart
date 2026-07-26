@@ -277,11 +277,9 @@ class ApiEndpoints {
   static String orderById(String id) => '/orders/$id';
   static String orderStatus(String id) => '/orders/$id/status';
 
-  // Payment endpoints
+  // Payment endpoints — Khalti only (eSewa intentionally not supported)
   static const String khaltiInitiate = '/payments/khalti/initiate';
   static const String khaltiVerify = '/payments/khalti/verify';
-  static const String esewaInitiate = '/payments/esewa/initiate';
-  static const String esewaVerify = '/payments/esewa/verify';
 
   static String resolveMediaUrl(String path) {
     var trimmed = path.trim();
