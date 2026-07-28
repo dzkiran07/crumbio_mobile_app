@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_endpoint.dart';
 import '../../../orders/domain/repositories/order_repository.dart';
 import '../../../orders/presentation/state/order_provider.dart';
+import '../../../payment/presentation/pages/khalti_webview_screen.dart';
+import '../../../payment/presentation/state/khalti_provider.dart';
 import '../state/cart_provider.dart';
 import 'button_navigation.dart';
 import 'cart_screen.dart';
@@ -78,6 +81,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
+  void _goToOrdersTab({required String message}) {
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const ButtonNavigation(initialIndex: 2)),
+      (route) => false,
+    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
@@ -90,7 +111,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     try {
       final createOrder = ref.read(createOrderUsecaseProvider);
-      await createOrder(
+      final order = await createOrder(
         CreateOrderParams(
           items: cartItems
               .map((item) => CreateOrderItemParams(
@@ -111,28 +132,53 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ),
       );
 
+      if (_paymentMethod != 'khalti') {
+        if (!mounted) return;
+        ref.read(cartProvider.notifier).clear();
+        ref.read(myOrdersProvider.notifier).fetchOrders();
+        _goToOrdersTab(message: 'Order placed successfully!');
+        return;
+      }
+
+      // Khalti order was created as unpaid — now kick off the hosted
+      // checkout. The order stays on record even if payment is abandoned.
+      final khalti = ref.read(khaltiRemoteDatasourceProvider);
+      final initiateResult = await khalti.initiate(
+        orderId: order.id,
+        returnUrl: ApiEndpoints.khaltiReturnUrl,
+      );
+
       if (!mounted) return;
+      final reachedReturnUrl = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => KhaltiWebviewScreen(paymentUrl: initiateResult.paymentUrl),
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (reachedReturnUrl != true) {
+        _showError('Payment window closed. Order was saved as unpaid — pay from Orders.');
+        ref.read(myOrdersProvider.notifier).fetchOrders();
+        return;
+      }
+
+      final verifyResult = await khalti.verify(initiateResult.pidx);
+      if (!mounted) return;
+
       ref.read(cartProvider.notifier).clear();
       ref.read(myOrdersProvider.notifier).fetchOrders();
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const ButtonNavigation(initialIndex: 2),
-        ),
-        (route) => false,
-      );
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Order placed successfully!')),
+      if (verifyResult.isPaid) {
+        _goToOrdersTab(message: 'Payment successful! Order placed.');
+      } else {
+        _goToOrdersTab(
+          message: 'Order placed, but payment was not completed. Pay from Orders.',
         );
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('Could not place order: $e')),
-        );
+      _showError('Could not place order: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
