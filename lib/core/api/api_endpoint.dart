@@ -280,6 +280,9 @@ class ApiEndpoints {
   // Payment endpoints — Khalti only (eSewa intentionally not supported)
   static const String khaltiInitiate = '/payments/khalti/initiate';
   static const String khaltiVerify = '/payments/khalti/verify';
+  // Doesn't need to be a live page — the webview intercepts navigation to
+  // this URL before it actually loads, so it only needs to be recognizable.
+  static const String khaltiReturnUrl = 'https://crumbio.local/payment/return';
 
   static String resolveMediaUrl(String path) {
     var trimmed = path.trim();
