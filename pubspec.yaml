@@ -54,6 +54,9 @@ dependencies:
   # State management
   flutter_riverpod: ^2.4.0
 
+  # Khalti hosted checkout (in-app webview)
+  webview_flutter: ^4.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
