@@ -86,6 +86,66 @@ class AuthRemoteDatasource {
     }
   }
 
+  Future<AuthApiModel> updateProfile({
+    String? fullName,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final response = await _apiClient.patch(
+        ApiEndpoints.me,
+        data: {
+          if (fullName != null) 'fullName': fullName,
+          if (phone != null) 'phone': phone,
+          if (address != null) 'address': address,
+        },
+      );
+      return AuthApiModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e, 'Could not update profile'));
+    }
+  }
+
+  Future<AuthApiModel> uploadProfileImage(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(filePath),
+      });
+      final response = await _apiClient.uploadFile(
+        ApiEndpoints.uploadProfileImage,
+        formData: formData,
+      );
+      return AuthApiModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e, 'Could not upload profile picture'));
+    }
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _apiClient.patch(
+        ApiEndpoints.changePassword,
+        data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+      );
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e, 'Could not change password'));
+    }
+  }
+
+  Future<void> deleteAccount({required String currentPassword}) async {
+    try {
+      await _apiClient.delete(
+        ApiEndpoints.me,
+        data: {'currentPassword': currentPassword},
+      );
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e, 'Could not delete account'));
+    }
+  }
+
   Future<String> sendForgotPasswordOtp(String email) async {
     try {
       final response = await _apiClient.post(

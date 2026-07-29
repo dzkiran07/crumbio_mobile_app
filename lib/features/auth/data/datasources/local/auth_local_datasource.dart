@@ -23,6 +23,11 @@ class AuthLocalDatasource {
 
   Future<void> cacheSession({required AuthApiModel user, required String token}) async {
     await _userSessionService.saveToken(token);
+    await _userSessionService.saveCurrentUserId(user.id);
+    await _hiveService.saveCurrentUser(user.toJson());
+  }
+
+  Future<void> cacheUser(AuthApiModel user) async {
     await _hiveService.saveCurrentUser(user.toJson());
   }
 
@@ -35,5 +40,9 @@ class AuthLocalDatasource {
   Future<void> clearSession() async {
     await _userSessionService.clearSession();
     await _hiveService.clearCurrentUser();
+  }
+
+  Future<void> clearBiometricDataForCurrentUser() async {
+    await _userSessionService.clearBiometricDataForCurrentUser();
   }
 }
