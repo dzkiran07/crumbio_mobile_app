@@ -160,8 +160,6 @@ class ApiClient {
     );
   }
 }
-
-// Auth Interceptor
 class _AuthInterceptor extends Interceptor {
   final UserSessionService _userSessionService;
   final void Function()? onUnauthorized;
@@ -180,18 +178,14 @@ class _AuthInterceptor extends Interceptor {
     final publicEndpoints = {
       ApiEndpoints.login,
       ApiEndpoints.register,
-      ApiEndpoints.forgotPasswordSendOtp,
-      ApiEndpoints.forgotPasswordVerifyOtp,
-      ApiEndpoints.forgotPasswordReset,
     };
 
-    // Check if this is a POST to login/register/forgot-password
+    // Check if this is a POST to login/register
     final isPublic = publicEndpoints.any(
       (endpoint) =>
           options.path.contains(endpoint) && (options.method == 'POST'),
     );
 
-    // Skip adding token only for public endpoints
     if (!isPublic) {
       try {
         final token = await _userSessionService.getToken();

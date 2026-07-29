@@ -1,257 +1,30 @@
-import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String _baseUrlFromEnv = String.fromEnvironment('API_BASE_URL');
-  static const String _physicalServerUrlFromEnv = String.fromEnvironment(
-    'API_PHYSICAL_SERVER_URL',
-  );
 
-  static const bool _useAdbReverseForAndroidPhysicalDebug =
-      bool.fromEnvironment('USE_ADB_REVERSE', defaultValue: true);
+  static const bool isPhysicalDevice = true;
+  static const String _ipAddress = '192.168.137.1';
+  static const int _port = 5000;
 
-  static const String _defaultPhysicalServerUrl = 'http://127.0.0.1:5000';
-
-  static bool _isInitialized = false;
-  static String? _resolvedServerUrl;
-
-  static Future<void> initialize({bool force = false}) async {
-    if (force) {
-      _isInitialized = false;
-      _resolvedServerUrl = null;
-    }
-    if (_isInitialized) return;
-    _isInitialized = true;
-
-    if (_baseUrlFromEnv.trim().isNotEmpty) {
-      final envServerUrl = _extractServerUrl(_baseUrlFromEnv.trim());
-      if (envServerUrl != null) {
-        final envHost = Uri.tryParse(envServerUrl)?.host;
-        final isLoopbackEnv = envHost != null && _isLoopbackHost(envHost);
-
-        if (isLoopbackEnv && !kIsWeb) {
-          switch (defaultTargetPlatform) {
-            case TargetPlatform.android:
-              _resolvedServerUrl = await _resolveAndroidServerUrl();
-              break;
-            case TargetPlatform.iOS:
-              _resolvedServerUrl = await _resolveIosServerUrl();
-              break;
-            case TargetPlatform.macOS:
-            case TargetPlatform.windows:
-            case TargetPlatform.linux:
-            case TargetPlatform.fuchsia:
-              _resolvedServerUrl = envServerUrl;
-              break;
-          }
-        } else {
-          _resolvedServerUrl = envServerUrl;
-        }
-      } else {
-        _resolvedServerUrl = _fallbackServerUrl();
-      }
-
-      await _guardAgainstLoopbackOnPhysicalDevice();
-      return;
-    }
-
-    if (kIsWeb) {
-      _resolvedServerUrl = 'http://localhost:5000';
-      return;
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        _resolvedServerUrl = await _resolveAndroidServerUrl();
-        return;
-      case TargetPlatform.iOS:
-        _resolvedServerUrl = await _resolveIosServerUrl();
-        return;
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-        _resolvedServerUrl = 'http://localhost:5000';
-        return;
-      default:
-        _resolvedServerUrl = 'http://localhost:5000';
-    }
+  // Base URLs
+  static String get _host {
+    if (isPhysicalDevice) return _ipAddress;
+    if (kIsWeb || Platform.isIOS) return 'localhost';
+    if (Platform.isAndroid) return '10.0.2.2';
+    return 'localhost';
   }
 
-  static Future<void> refreshResolution() async {
-    await initialize(force: true);
-  }
+  static String get serverUrl => 'http://$_host:$_port';
+  static String get baseUrl => '$serverUrl/api';
 
-  // API base URL
-  static String get baseUrl {
-    if (_resolvedServerUrl != null) {
-      return '${_resolvedServerUrl!}/api';
-    }
-    if (_baseUrlFromEnv.trim().isNotEmpty) {
-      final extracted = _extractServerUrl(_baseUrlFromEnv.trim());
-      if (extracted != null) {
-        return '$extracted/api';
-      }
-      return _normalizeBaseUrl(_baseUrlFromEnv);
-    }
-    return '$serverUrl/api';
-  }
+  static Future<void> initialize({bool force = false}) async {}
+  static Future<void> refreshResolution() async {}
 
-  // Backend origin without /api, useful for image paths.
-  static String get serverUrl {
-    if (_resolvedServerUrl != null) {
-      return _resolvedServerUrl!;
-    }
-    if (_baseUrlFromEnv.trim().isNotEmpty) {
-      final envServerUrl = _extractServerUrl(_baseUrlFromEnv.trim());
-      if (envServerUrl != null) {
-        return envServerUrl;
-      }
-    }
-    return _resolvedServerUrl ?? _fallbackServerUrl();
-  }
-
-  static String _fallbackServerUrl() {
-    if (kIsWeb) {
-      return 'http://localhost:5000';
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'http://10.0.2.2:5000';
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-        return 'http://localhost:5000';
-      default:
-        return 'http://localhost:5000';
-    }
-  }
-
-  static Future<String> _resolveAndroidServerUrl() async {
-    try {
-      final info = await DeviceInfoPlugin().androidInfo;
-      if (info.isPhysicalDevice) {
-        if (kDebugMode && _useAdbReverseForAndroidPhysicalDebug) {
-          return 'http://localhost:5000';
-        }
-        return _physicalServerUrl;
-      }
-    } catch (_) {}
-
-    final canReachPhysical = await _isServerReachable(_physicalServerUrl);
-    if (canReachPhysical) {
-      return _physicalServerUrl;
-    }
-
-    // Android emulator loopback alias.
-    return 'http://10.0.2.2:5000';
-  }
-
-  static Future<String> _resolveIosServerUrl() async {
-    try {
-      final info = await DeviceInfoPlugin().iosInfo;
-      if (info.isPhysicalDevice) {
-        return _physicalServerUrl;
-      }
-    } catch (_) {}
-
-    return 'http://localhost:5000';
-  }
-
-  static String get _physicalServerUrl {
-    final envValue = _physicalServerUrlFromEnv.trim();
-    if (envValue.isNotEmpty) {
-      return _normalizeUrl(envValue);
-    }
-    return _defaultPhysicalServerUrl;
-  }
-
-  static Future<bool> _isServerReachable(String originUrl) async {
-    try {
-      final response = await http
-          .head(Uri.parse(originUrl))
-          .timeout(const Duration(milliseconds: 1200));
-      return response.statusCode >= 100 && response.statusCode < 600;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  static String? _extractServerUrl(String rawUrl) {
-    final uri = Uri.tryParse(rawUrl.trim());
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      return null;
-    }
-
-    final port = uri.hasPort ? ':${uri.port}' : '';
-    return '${uri.scheme}://${uri.host}$port';
-  }
-
-  static String _normalizeUrl(String rawUrl) {
-    return rawUrl.trim().replaceAll(RegExp(r'/+$'), '');
-  }
-
-  static String _normalizeBaseUrl(String rawUrl) {
-    final trimmed = _normalizeUrl(rawUrl);
-    if (trimmed.endsWith('/api')) return trimmed;
-    return '$trimmed/api';
-  }
-
-  static bool _isLoopbackHost(String host) {
-    final normalized = host.toLowerCase().trim();
-    return normalized == '127.0.0.1' ||
-        normalized == 'localhost' ||
-        normalized == '::1';
-  }
-
-  static Future<void> _guardAgainstLoopbackOnPhysicalDevice() async {
-    final resolved = _resolvedServerUrl;
-    if (resolved == null || kIsWeb) return;
-
-    final uri = Uri.tryParse(resolved);
-    if (uri == null || !_isLoopbackHost(uri.host)) return;
-
-    bool isPhysicalDevice = false;
-
-    try {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          final info = await DeviceInfoPlugin().androidInfo;
-          isPhysicalDevice = info.isPhysicalDevice;
-          break;
-        case TargetPlatform.iOS:
-          final info = await DeviceInfoPlugin().iosInfo;
-          isPhysicalDevice = info.isPhysicalDevice;
-          break;
-        case TargetPlatform.macOS:
-        case TargetPlatform.windows:
-        case TargetPlatform.linux:
-        case TargetPlatform.fuchsia:
-          isPhysicalDevice = false;
-          break;
-      }
-    } catch (_) {
-      isPhysicalDevice = false;
-    }
-
-    if (!isPhysicalDevice) return;
-
-    final canUseReverse =
-        defaultTargetPlatform == TargetPlatform.android &&
-        kDebugMode &&
-        _useAdbReverseForAndroidPhysicalDebug;
-    if (canUseReverse) {
-      final canReachLoopback = await _isServerReachable(resolved);
-      if (canReachLoopback) return;
-    }
-
-    _resolvedServerUrl = _physicalServerUrl;
-  }
-
+  // Timeouts
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
@@ -260,10 +33,6 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String me = '/auth/me';
   static const String uploadProfileImage = '/auth/me/image';
-  static const String forgotPasswordSendOtp = '/auth/forgot-password/send-otp';
-  static const String forgotPasswordVerifyOtp =
-      '/auth/forgot-password/verify-otp';
-  static const String forgotPasswordReset = '/auth/forgot-password/reset';
   static const String changePassword = '/auth/change-password';
 
   // Product endpoints
@@ -282,8 +51,6 @@ class ApiEndpoints {
   // Payment endpoints — Khalti only (eSewa intentionally not supported)
   static const String khaltiInitiate = '/payments/khalti/initiate';
   static const String khaltiVerify = '/payments/khalti/verify';
-  // Doesn't need to be a live page — the webview intercepts navigation to
-  // this URL before it actually loads, so it only needs to be recognizable.
   static const String khaltiReturnUrl = 'https://crumbio.local/payment/return';
 
   static String resolveMediaUrl(String path) {
