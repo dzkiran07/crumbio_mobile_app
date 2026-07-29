@@ -259,10 +259,12 @@ class ApiEndpoints {
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static const String me = '/auth/me';
+  static const String uploadProfileImage = '/auth/me/image';
   static const String forgotPasswordSendOtp = '/auth/forgot-password/send-otp';
   static const String forgotPasswordVerifyOtp =
       '/auth/forgot-password/verify-otp';
   static const String forgotPasswordReset = '/auth/forgot-password/reset';
+  static const String changePassword = '/auth/change-password';
 
   // Product endpoints
   static const String products = '/products';
