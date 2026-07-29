@@ -20,6 +20,21 @@ abstract interface class IAuthRepository {
 
   Future<Either<Failure, AuthEntity>> getCurrentUser();
 
+  Future<Either<Failure, AuthEntity>> updateProfile({
+    String? fullName,
+    String? phone,
+    String? address,
+  });
+
+  Future<Either<Failure, AuthEntity>> uploadProfileImage(String filePath);
+
+  Future<Either<Failure, bool>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  Future<Either<Failure, bool>> deleteAccount({required String currentPassword});
+
   Future<Either<Failure, bool>> logout();
 
   Future<Either<Failure, bool>> sendForgotPasswordOtp(String email);

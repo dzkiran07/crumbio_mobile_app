@@ -77,6 +77,64 @@ class AuthRepository implements IAuthRepository {
   }
 
   @override
+  Future<Either<Failure, AuthEntity>> updateProfile({
+    String? fullName,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final user = await _remoteDatasource.updateProfile(
+        fullName: fullName,
+        phone: phone,
+        address: address,
+      );
+      await _localDatasource.cacheUser(user);
+      return Right(user.toEntity());
+    } on Exception catch (e) {
+      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> uploadProfileImage(String filePath) async {
+    try {
+      final user = await _remoteDatasource.uploadProfileImage(filePath);
+      await _localDatasource.cacheUser(user);
+      return Right(user.toEntity());
+    } on Exception catch (e) {
+      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _remoteDatasource.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      return const Right(true);
+    } on Exception catch (e) {
+      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteAccount({required String currentPassword}) async {
+    try {
+      await _remoteDatasource.deleteAccount(currentPassword: currentPassword);
+      await _localDatasource.clearBiometricDataForCurrentUser();
+      await _localDatasource.clearSession();
+      return const Right(true);
+    } on Exception catch (e) {
+      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> logout() async {
     try {
       await _localDatasource.clearSession();
