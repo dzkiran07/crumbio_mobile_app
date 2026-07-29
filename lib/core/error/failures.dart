@@ -14,8 +14,6 @@ class LocalDatabaseFailure extends Failure {
     String message = 'Local database operation failed',
   }) : super(message);
 }
-
-//API Failure with status code
 class ApiFailure extends Failure {
   final int? statusCode;
 

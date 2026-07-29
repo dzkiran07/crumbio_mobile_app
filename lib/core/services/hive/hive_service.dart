@@ -19,25 +19,21 @@ class HiveService {
     await openBoxes();
   }
 
-  //Register Adapters
   void _registerAdapter() {
     if (!Hive.isAdapterRegistered(HiveTableConstant.productTypeId)) {
       Hive.registerAdapter(ProductHiveModelAdapter());
     }
   }
 
-  //Open Boxes
   Future<void> openBoxes() async {
     await Hive.openBox<ProductHiveModel>(HiveTableConstant.productTable);
     await Hive.openBox(HiveTableConstant.sessionTable);
   }
 
-  //Close Boxes
   Future<void> close() async {
     await Hive.close();
   }
 
-  //==========Product queries==================
 
   Box<ProductHiveModel> get _productBox =>
       Hive.box<ProductHiveModel>(HiveTableConstant.productTable);
@@ -61,7 +57,6 @@ class HiveService {
     await _productBox.clear();
   }
 
-  //==========Session queries==================
 
   Box get _sessionBox => Hive.box(HiveTableConstant.sessionTable);
 

@@ -145,8 +145,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!mounted) return;
     setState(() {
       _isUploadingImage = false;
-      // The network image (from the refreshed authEntity) takes over once
-      // uploaded, so the local optimistic preview is no longer needed.
       if (success) _localProfileImage = null;
     });
 

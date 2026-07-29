@@ -145,47 +145,4 @@ class AuthRemoteDatasource {
       throw Exception(_extractErrorMessage(e, 'Could not delete account'));
     }
   }
-
-  Future<String> sendForgotPasswordOtp(String email) async {
-    try {
-      final response = await _apiClient.post(
-        ApiEndpoints.forgotPasswordSendOtp,
-        data: {'email': email},
-      );
-      return (response.data as Map<String, dynamic>)['message'] as String;
-    } on DioException catch (e) {
-      throw Exception(_extractErrorMessage(e, 'Could not send OTP'));
-    }
-  }
-
-  Future<String> verifyForgotPasswordOtp({
-    required String email,
-    required String otp,
-  }) async {
-    try {
-      final response = await _apiClient.post(
-        ApiEndpoints.forgotPasswordVerifyOtp,
-        data: {'email': email, 'otp': otp},
-      );
-      return (response.data as Map<String, dynamic>)['message'] as String;
-    } on DioException catch (e) {
-      throw Exception(_extractErrorMessage(e, 'Invalid OTP'));
-    }
-  }
-
-  Future<String> resetForgotPassword({
-    required String email,
-    required String otp,
-    required String newPassword,
-  }) async {
-    try {
-      final response = await _apiClient.post(
-        ApiEndpoints.forgotPasswordReset,
-        data: {'email': email, 'otp': otp, 'newPassword': newPassword},
-      );
-      return (response.data as Map<String, dynamic>)['message'] as String;
-    } on DioException catch (e) {
-      throw Exception(_extractErrorMessage(e, 'Could not reset password'));
-    }
-  }
 }

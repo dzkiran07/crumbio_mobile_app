@@ -3,12 +3,6 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../../core/api/api_endpoint.dart';
 
-/// Opens Khalti's hosted checkout page and pops with `true` once the page
-/// tries to navigate back to [ApiEndpoints.khaltiReturnUrl] (Khalti redirects
-/// there after the user finishes — or cancels — the payment on their end).
-/// That return URL is never actually loaded; navigation to it is intercepted
-/// and cancelled, then the caller is responsible for calling verify to find
-/// out whether the payment actually succeeded.
 class KhaltiWebviewScreen extends StatefulWidget {
   final String paymentUrl;
 

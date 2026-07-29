@@ -1,9 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// NOTE: unlike AgriBridge's CartNotifier, this doesn't persist the cart per
-// logged-in user yet — that needs a full UserSessionService (getCurrentUserId,
-// getCartForUser/saveCartForUser) which only exists once the auth feature is
-// built. In-memory only for now.
 final cartProvider = StateNotifierProvider<CartNotifier, List<CartProduct>>(
   (ref) => CartNotifier(),
 );

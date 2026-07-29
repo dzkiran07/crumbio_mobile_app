@@ -8,11 +8,8 @@ import '../../domain/usecases/get_current_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
-import '../../domain/usecases/reset_forgot_password_usecase.dart';
-import '../../domain/usecases/send_forgot_password_otp_usecase.dart';
 import '../../domain/usecases/update_profile_usecase.dart';
 import '../../domain/usecases/upload_profile_image_usecase.dart';
-import '../../domain/usecases/verify_forgot_password_otp_usecase.dart';
 import '../state/auth_state.dart';
 
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
@@ -25,9 +22,6 @@ final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((r
     uploadProfileImageUsecase: ref.read(uploadProfileImageUsecaseProvider),
     changePasswordUsecase: ref.read(changePasswordUsecaseProvider),
     deleteAccountUsecase: ref.read(deleteAccountUsecaseProvider),
-    sendForgotPasswordOtpUsecase: ref.read(sendForgotPasswordOtpUsecaseProvider),
-    verifyForgotPasswordOtpUsecase: ref.read(verifyForgotPasswordOtpUsecaseProvider),
-    resetForgotPasswordUsecase: ref.read(resetForgotPasswordUsecaseProvider),
     userSessionService: ref.read(userSessionServiceProvider),
   );
 });
@@ -41,9 +35,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
   final UploadProfileImageUsecase _uploadProfileImageUsecase;
   final ChangePasswordUsecase _changePasswordUsecase;
   final DeleteAccountUsecase _deleteAccountUsecase;
-  final SendForgotPasswordOtpUsecase _sendForgotPasswordOtpUsecase;
-  final VerifyForgotPasswordOtpUsecase _verifyForgotPasswordOtpUsecase;
-  final ResetForgotPasswordUsecase _resetForgotPasswordUsecase;
   final UserSessionService _userSessionService;
 
   AuthViewModel({
@@ -55,9 +46,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     required UploadProfileImageUsecase uploadProfileImageUsecase,
     required ChangePasswordUsecase changePasswordUsecase,
     required DeleteAccountUsecase deleteAccountUsecase,
-    required SendForgotPasswordOtpUsecase sendForgotPasswordOtpUsecase,
-    required VerifyForgotPasswordOtpUsecase verifyForgotPasswordOtpUsecase,
-    required ResetForgotPasswordUsecase resetForgotPasswordUsecase,
     required UserSessionService userSessionService,
   }) : _loginUsecase = loginUsecase,
        _registerUsecase = registerUsecase,
@@ -67,9 +55,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
        _uploadProfileImageUsecase = uploadProfileImageUsecase,
        _changePasswordUsecase = changePasswordUsecase,
        _deleteAccountUsecase = deleteAccountUsecase,
-       _sendForgotPasswordOtpUsecase = sendForgotPasswordOtpUsecase,
-       _verifyForgotPasswordOtpUsecase = verifyForgotPasswordOtpUsecase,
-       _resetForgotPasswordUsecase = resetForgotPasswordUsecase,
        _userSessionService = userSessionService,
        super(const AuthState());
 
@@ -90,10 +75,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     );
     if (!success || loggedInUser == null) return false;
 
-    // Keep the fingerprint-login credential cache fresh on every successful
-    // login, mirroring AgriBridge — enabling biometric login later (from the
-    // Security screen) just flips a flag rather than needing a fresh
-    // password entry at that point.
     try {
       await _userSessionService.syncBiometricStateAfterLogin(loggedInUserId: loggedInUser!.id);
       await _userSessionService.saveBiometricCredentials(email: email, password: password);
@@ -212,58 +193,4 @@ class AuthViewModel extends StateNotifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  Future<bool> sendForgotPasswordOtp(String email) async {
-    state = state.copyWith(status: AuthStatus.loading);
-    final result = await _sendForgotPasswordOtpUsecase(
-      SendForgotPasswordOtpUsecaseParams(email: email),
-    );
-    return result.fold(
-      (failure) {
-        state = state.copyWith(status: AuthStatus.error, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(status: AuthStatus.initial, infoMessage: 'OTP sent to your email.');
-        return true;
-      },
-    );
-  }
-
-  Future<bool> verifyForgotPasswordOtp({required String email, required String otp}) async {
-    state = state.copyWith(status: AuthStatus.loading);
-    final result = await _verifyForgotPasswordOtpUsecase(
-      VerifyForgotPasswordOtpUsecaseParams(email: email, otp: otp),
-    );
-    return result.fold(
-      (failure) {
-        state = state.copyWith(status: AuthStatus.error, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(status: AuthStatus.initial);
-        return true;
-      },
-    );
-  }
-
-  Future<bool> resetForgotPassword({
-    required String email,
-    required String otp,
-    required String newPassword,
-  }) async {
-    state = state.copyWith(status: AuthStatus.loading);
-    final result = await _resetForgotPasswordUsecase(
-      ResetForgotPasswordUsecaseParams(email: email, otp: otp, newPassword: newPassword),
-    );
-    return result.fold(
-      (failure) {
-        state = state.copyWith(status: AuthStatus.error, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(status: AuthStatus.initial);
-        return true;
-      },
-    );
-  }
 }

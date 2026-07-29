@@ -45,8 +45,6 @@ class ProductRepositoryImpl implements ProductRepository {
 					))
 				.toList();
 		} catch (e) {
-			// On error, fallback to local cache — only meaningful for the
-			// unfiltered browse list, since filtered queries were never cached.
 			if (!isUnfiltered) rethrow;
 			final cached = localDatasource.getCachedProducts();
 			return cached

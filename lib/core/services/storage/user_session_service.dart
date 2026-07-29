@@ -33,9 +33,6 @@ class UserSessionService {
     return await _secureStorage.read(key: _keyToken);
   }
 
-  // Save/get the currently logged-in user's id — needed to scope biometric
-  // credentials per-user (e.g. so logging in as someone else on the same
-  // device doesn't inherit the previous user's fingerprint login).
   Future<void> saveCurrentUserId(String userId) async {
     await _secureStorage.write(key: _keyUserId, value: userId);
   }
@@ -44,10 +41,7 @@ class UserSessionService {
     return await _secureStorage.read(key: _keyUserId);
   }
 
-  // Clear session (logout) — deliberately does NOT touch biometric setup,
-  // matching AgriBridge: logging out keeps fingerprint login ready for next
-  // time. Only clearBiometricLoginSetup()/clearBiometricDataForCurrentUser()
-  // remove it.
+  
   Future<void> clearSession() async {
     await _secureStorage.delete(key: _keyToken);
     await _secureStorage.delete(key: _keyUserId);

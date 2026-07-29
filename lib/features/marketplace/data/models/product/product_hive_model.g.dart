@@ -2,10 +2,6 @@
 
 part of 'product_hive_model.dart';
 
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
-
 class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
   @override
   final int typeId = 0;

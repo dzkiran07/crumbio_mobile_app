@@ -144,44 +144,4 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, bool>> sendForgotPasswordOtp(String email) async {
-    try {
-      await _remoteDatasource.sendForgotPasswordOtp(email);
-      return const Right(true);
-    } on Exception catch (e) {
-      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> verifyForgotPasswordOtp({
-    required String email,
-    required String otp,
-  }) async {
-    try {
-      await _remoteDatasource.verifyForgotPasswordOtp(email: email, otp: otp);
-      return const Right(true);
-    } on Exception catch (e) {
-      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> resetForgotPassword({
-    required String email,
-    required String otp,
-    required String newPassword,
-  }) async {
-    try {
-      await _remoteDatasource.resetForgotPassword(
-        email: email,
-        otp: otp,
-        newPassword: newPassword,
-      );
-      return const Right(true);
-    } on Exception catch (e) {
-      return Left(ApiFailure(message: e.toString().replaceFirst('Exception: ', '')));
-    }
-  }
 }

@@ -36,17 +36,4 @@ abstract interface class IAuthRepository {
   Future<Either<Failure, bool>> deleteAccount({required String currentPassword});
 
   Future<Either<Failure, bool>> logout();
-
-  Future<Either<Failure, bool>> sendForgotPasswordOtp(String email);
-
-  Future<Either<Failure, bool>> verifyForgotPasswordOtp({
-    required String email,
-    required String otp,
-  });
-
-  Future<Either<Failure, bool>> resetForgotPassword({
-    required String email,
-    required String otp,
-    required String newPassword,
-  });
 }
