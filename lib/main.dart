@@ -30,8 +30,6 @@ class CrumbioApp extends StatelessWidget {
   }
 }
 
-/// Kicks off restoring any cached login session (used by the Profile tab)
-/// in the background while SplashScreen decides where to route the user.
 class _AppRoot extends ConsumerStatefulWidget {
   const _AppRoot();
 
