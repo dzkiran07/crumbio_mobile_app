@@ -82,6 +82,9 @@ dev_dependencies:
   hive_generator: ^2.0.1
   build_runner: ^2.4.13
 
+  # Terminal coverage report (reads coverage/lcov.info from `flutter test --coverage`)
+  test_cov_console: ^0.2.2
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
